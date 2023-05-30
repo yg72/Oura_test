@@ -1,11 +1,15 @@
 import os
 import requests
-from flask import Flask, session, redirect, request, url_for, render_template
+from flask import Flask, session,redirect, request, url_for, render_template
 from flask_session import Session
 from requests_oauthlib import OAuth2Session
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, exc
 from sqlalchemy.sql import text
+# import for token test
+import json
+import requests_mock
+from oura import OuraOAuth2Client
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -23,13 +27,17 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-OURA_CLIENT_ID     = os.getenv('OURA_CLIENT_ID')
-OURA_CLIENT_SECRET = os.getenv('OURA_CLIENT_SECRET')
+
+OURA_CLIENT_ID ="GDXZT26FQ25TSK7M"
+OURA_CLIENT_SECRET = "TRMFHOI2T3BYRYRP7POC62KUYN37NON4"
+# OURA_CLIENT_ID     = os.getenv('OURA_CLIENT_ID')
+# OURA_CLIENT_SECRET = os.getenv('OURA_CLIENT_SECRET')
 
 OURA_AUTH_URL = 'https://cloud.ouraring.com/oauth/authorize'
 OURA_TOKEN_URL = 'https://api.ouraring.com/oauth/token'
 
 global user_str
+
 
 @app.route('/login', methods = ['POST'])
 def oura_login():
@@ -39,18 +47,22 @@ def oura_login():
     Oura cloud's login page
 
     """
-
     if request.method == 'POST':
-       
         global user_str
         user_str = request.form['fname']
-       
+    print(OURA_CLIENT_ID)
+
     oura_session = OAuth2Session(OURA_CLIENT_ID)
+
+    
+    # https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=GDXZT26FQ25TSK7M&state=t3C6CfVSr9k4QRwMZYU561EO3wooEq
+
     # URL for Oura's authorization page for specific client
     authorization_url, state = oura_session.authorization_url(OURA_AUTH_URL)
-    print(state)
+    print(authorization_url)
     session['oauth_state'] = state
     print(session['oauth_state'])
+    
     return redirect(authorization_url)
 
 
@@ -60,6 +72,7 @@ def callback():
     Get the acces_token from response url from Oura. 
     Redirect to the sleep data page.
     """
+    print("callback")
     oura_session = OAuth2Session(OURA_CLIENT_ID, state=session['oauth_state'])
     session['oauth'] = oura_session.fetch_token(
                         OURA_TOKEN_URL,
@@ -95,9 +108,9 @@ def home():
     return render_template('welcome.html') # "<h1>Welcome to your Oura app</h1>"
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port='9090')
+    app.run(debug=False, host='127.0.0.1', port=8080,use_reloader=False)
     # with app.test_request_context():
     #     print(url_for('index'))
     #     print(url_for('login'))
     #     print(url_for('login', next='/'))
-        # print(url_for('profile', username='John Doe'))
+    #     print(url_for('profile', username='John Doe'))
