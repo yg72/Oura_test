@@ -6,10 +6,7 @@ from requests_oauthlib import OAuth2Session
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine, exc
 from sqlalchemy.sql import text
-# import for token test
-import json
-import requests_mock
-from oura import OuraOAuth2Client
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
